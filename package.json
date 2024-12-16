@@ -1,7 +1,7 @@
 {
   "name": "aadityaneupane",
   "version": "1.0.0",
-  "main": "index.html",
+  "main": "index.js",
   "scripts": {
     "start": "parcel public/index.html",
     "build": "parcel build public/index.html"
