@@ -1,33 +1,36 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
+import Header from './header.jsx'
 import './App.css'
-
+import Footer from './footer.jsx'
+import Card from './card.jsx'
+import './card.css'
+import defaultImage from './assets/card.jpeg';
+console.log('Default Image:', defaultImage);
 function App() {
-  const [count, setCount] = useState(0)
+  const cardData = {
+    title: "Welcome to My App",
+    description: "This is a sample card with some content.",
+    imageUrl: defaultImage,
+    buttonLabel: "Learn More",
+    onClick: () => alert("Button clicked!"),
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <Header></Header>
+
+
+      <Card 
+        title={cardData.title}
+        description={cardData.description} 
+        imageUrl={cardData.imageUrl} 
+        buttonLabel={cardData.buttonLabel} 
+        onClick={cardData.onClick}/>
+
+
+      <Footer></Footer>
+
     </>
   )
 }
