@@ -1,61 +1,77 @@
-/* Navbar container */
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #333;
-    padding: 1rem;
-    color: white;
-  }
-  
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  }
-  
-  /* Navbar links */
-  .navbar-links {
-    display: flex;
-    gap: 1rem;
-  }
-  
-  .navbar-links a {
-    color: white;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    transition: background-color 0.3s;
-  }
-  
-  .navbar-links a:hover {
-    background-color: #555;
-    border-radius: 4px;
-  }
-  
-  /* Mobile toggle button */
-  .navbar-toggle {
-    display: none;
-    cursor: pointer;
-  }
-  
-  .navbar-toggle-icon {
-    font-size: 1.5rem;
-  }
-  
-  /* Responsive styles */
-  @media (max-width: 768px) {
-    .navbar-links {
-      display: none;
+body {
+  font-family: 'Arial', sans-serif;
+}
+
+.navbar {
+  background-color: #333;
+  padding: 1rem;
+  position: relative;
+}
+
+.nav-list {
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav-list li {
+  flex: 1;
+  text-align: center;
+}
+
+.nav-list a {
+  color: white;
+  text-decoration: none;
+  display: block;
+  padding: 0.8rem 1.2rem;
+  margin: 0 0.3rem;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  background-color: #444;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+}
+
+.nav-list a:hover {
+  background-color: #0066cc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive design */
+@media screen and (max-width: 768px) {
+  .nav-list {
       flex-direction: column;
-      width: 100%;
-      background-color: #333;
-      position: absolute;
-      top: 60px;
-      left: 0;
-    }
-  
-    .navbar-links.active {
-      display: flex;
-    }
-  
-    .navbar-toggle {
-      display: block;
-    }
+      gap: 10px;
   }
+  
+  .nav-list li {
+      margin: 0.3rem 0;
+  }
+  
+  .nav-list a {
+      padding: 1rem;
+      margin: 0;
+      text-align: center;
+  }
+}
+
+/* smaller screens */
+@media screen and (max-width: 480px) {
+  .navbar {
+      padding: 0.8rem 0.5rem;
+  }
+  
+  .nav-list a {
+      font-size: 0.9rem;
+      padding: 0.8rem 0.5rem;
+  }
+}
