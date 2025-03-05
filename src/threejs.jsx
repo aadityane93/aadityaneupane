@@ -182,48 +182,61 @@ const ThreeScene = () => {
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
-    window.addEventListener("click", (event) => {
-      if (!laptopModel) {
-        console.log("Laptop model not loaded yet!");
-        return;
-      }
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObject(laptopModel, true);
-
-      if (intersects.length > 0) {
-        console.log("Laptop Model Clicked!");
-
-        let overlay = document.createElement("div");
-        overlay.id = "fullscreenOverlay";
-        overlay.innerHTML = `
-          <div id="overlayContent">
-              <h1>This is Overlay</h1>
-              <p>Example of a fullscreen overlay.</p>
-              <button id="closeOverlay">Close</button>
-          </div>
-        `;
-        document.body.appendChild(overlay);
-
-        overlay.style.position = "fixed";
-        overlay.style.top = "0";
-        overlay.style.left = "0";
-        overlay.style.width = "100vw";
-        overlay.style.height = "100vh";
-        overlay.style.background = "rgba(0, 0, 0, 0.9)";
-        overlay.style.display = "flex";
-        overlay.style.justifyContent = "center";
-        overlay.style.alignItems = "center";
-        overlay.style.color = "#fff";
-        overlay.style.zIndex = "1000";
-
-        document.getElementById("closeOverlay").addEventListener("click", () => {
-          overlay.remove();
-        });
-      }
+    window.addEventListener("click", async (event) => {
+        if (!laptopModel) {
+            console.warn("Laptop model is not loaded yet.");
+            return;
+        }
+    
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObject(laptopModel, true);
+    
+        if (intersects.length > 0) {
+            console.log("Laptop Model Clicked!");
+    
+            // Prevent multiple overlays
+            if (document.getElementById("fullscreenOverlay")) return;
+    
+            try {
+                // Fetch overlay.html from public folder
+                const response = await fetch("/overlay.html");
+                if (!response.ok) throw new Error("Failed to load overlay.html");
+                const htmlContent = await response.text();
+    
+                // Create overlay container
+                let overlay = document.createElement("div");
+                overlay.id = "fullscreenOverlay";
+                overlay.innerHTML = htmlContent;
+    
+                // Apply overlay styles
+                overlay.style.position = "fixed";
+                overlay.style.top = "0";
+                overlay.style.left = "0";
+                overlay.style.width = "100vw";
+                overlay.style.height = "100vh";
+                overlay.style.background = "rgba(0, 0, 0, 0.9)";
+                overlay.style.display = "flex";
+                overlay.style.justifyContent = "center";
+                overlay.style.alignItems = "center";
+                overlay.style.zIndex = "1000";
+    
+                // Append overlay to body
+                document.body.appendChild(overlay);
+    
+                // Close overlay when clicking the button
+                document.getElementById("closeOverlay").addEventListener("click", () => {
+                    overlay.remove();
+                });
+    
+            } catch (error) {
+                console.error("Error loading overlay:", error);
+            }
+        }
     });
+    
 
     // Animation Loop
     function animate() {

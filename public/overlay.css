@@ -1,0 +1,14 @@
+#overlayContent {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    color: black;
+    text-align: center;
+}
+#closeOverlay {
+    background: red;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+}

@@ -20,8 +20,7 @@ function App() {
   // const navbar_content = ["Home", "About", "Projects", "Contact"];
   return (
     <>
-      {/* <Header></Header> */}
-
+      
       {/* <Navbar navbar_content={navbar_content}></Navbar>
 
       <Card 
@@ -30,8 +29,11 @@ function App() {
         imageUrl={cardData.imageUrl} 
         buttonLabel={cardData.buttonLabel} 
         onClick={cardData.onClick}/> */}
+      {/* <Header></Header> */}
+      <ThreeScene>
+      
 
-      <ThreeScene />
+      </ThreeScene>
       {/* <Footer></Footer> */}
 
 
