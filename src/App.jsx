@@ -5,33 +5,35 @@ import './App.css'
 import Footer from './footer.jsx'
 import Card from './card.jsx'
 import Navbar from './navbar.jsx'
+import ThreeScene from './threejs.jsx'
 import './card.css'
 import defaultImage from './assets/card.jpeg';
 console.log('Default Image:', defaultImage);
 function App() {
-  const cardData = {
-    title: "Welcome to My App",
-    description: "This is a sample card with some content.",
-    imageUrl: defaultImage,
-    buttonLabel: "Learn More",
-    onClick: () => alert("Button clicked!"),
-  };
-  const navbar_content = ["Home", "About", "Projects", "Contact"];
+  // const cardData = {
+  //   title: "Welcome to My App",
+  //   description: "This is a sample card with some content.",
+  //   imageUrl: defaultImage,
+  //   buttonLabel: "Learn More",
+  //   onClick: () => alert("Button clicked!"),
+  // };
+  // const navbar_content = ["Home", "About", "Projects", "Contact"];
   return (
     <>
       {/* <Header></Header> */}
 
-      <Navbar navbar_content={navbar_content}></Navbar>
+      {/* <Navbar navbar_content={navbar_content}></Navbar>
 
       <Card 
         title={cardData.title}
         description={cardData.description} 
         imageUrl={cardData.imageUrl} 
         buttonLabel={cardData.buttonLabel} 
-        onClick={cardData.onClick}/>
+        onClick={cardData.onClick}/> */}
 
+      <ThreeScene />
+      {/* <Footer></Footer> */}
 
-      <Footer></Footer>
 
     </>
   )
