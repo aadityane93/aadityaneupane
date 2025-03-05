@@ -1,0 +1,15 @@
+# Blender MTL File: 'desk-022.blend'
+# Material Count: 1
+
+newmtl desk-022
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump textures/desk-022-nrm-metalness-4k.png
+map_Ns textures/desk-022-roughness-metalness-4k.png
+refl textures/desk-022-col-metalness-4k.png
