@@ -1,14 +1,39 @@
+<style>
+
+    #closeOverlay {
+        position: fixed !important;
+        top: 0px !important;
+        right: 10px !important;
+        z-index: 9999 !important;
+        padding: 10px 15px;
+        background-color: red;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    #overlayFrame {
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    }
+
+
+</style>
+
 <div id="overlayContent">
     <!-- <h1>This is Overlay</h1>
     <p>Example of a fullscreen overlay.</p> -->
 
-    <button id="closeOverlay">Close</button>
+    
     <iframe 
-        src="https://www.wikipedia.org" 
-        width="600" 
-        height="400" 
+        id = "overlayFrame"
+        src="https://vscode-portfolio.azurewebsites.net/" 
+        width="1600" 
+        height="700" 
         style="border:1px solid #000;">
     </iframe>
 
-    
+    <button id="closeOverlay">Close</button>
 </div>
