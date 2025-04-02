@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "vite"
+    "start": "serve -s dist"
   },
   "dependencies": {
     "react": "^19.0.0",
