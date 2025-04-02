@@ -29,8 +29,8 @@ const ThreeScene = () => {
 
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.position.set(8, 8, 12);
-
+    // camera.position.set(8, 8, 12);
+    camera.position.set(100, 8, 12);
 
     // const geometry = new THREE.TorusGeometry(50,7,40,60)
     // const material = new THREE.MeshStandardMaterial({color:0xFF6347, wireframe: true})
