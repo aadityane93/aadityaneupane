@@ -1,3 +1,4 @@
+import React from 'react'
 import { useEffect, useRef } from "react";
 import './threestyles.css';
 import * as THREE from 'three';

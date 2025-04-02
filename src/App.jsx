@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
+import React from 'react'
 import Header from './header.jsx'
 import './App.css'
 import Footer from './footer.jsx'

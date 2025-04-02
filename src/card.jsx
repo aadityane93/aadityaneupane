@@ -1,3 +1,4 @@
+import React from 'react'
 import PropTypes from 'prop-types';
 import defaultImage from './assets/card.jpeg?url';
 // { imageUrl, title, description, buttonLabel, onClick }

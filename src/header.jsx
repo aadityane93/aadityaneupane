@@ -1,3 +1,4 @@
+import React from 'react'
 function Header() {
 
     const navcontent = ['Home', 'About', 'Projects', 'Contact'];
