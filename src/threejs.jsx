@@ -6,6 +6,18 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 
+const loadingManager = new THREE.LoadingManager(
+    ()=>{
+    document.getElementById('loading-screen').style.display = 'none';
+    initScene();
+    animate();
+    },
+    (item, loaded, total) => {
+        const percent = (loaded / total) * 100;
+        document.getElementById('loading-bar').style.width = `${percent}%`;
+    }
+);
+
 const ThreeScene = () => {
   const mountRef = useRef(null);
 
@@ -75,7 +87,7 @@ const ThreeScene = () => {
 
     // Load Laptop Model
     let laptopModel;
-    const loader = new GLTFLoader();
+    const loader = new GLTFLoader(loadingManager);
     loader.load(
       'laptop.glb',
       (gltf) => {
@@ -92,7 +104,7 @@ const ThreeScene = () => {
 
     let deskModel;
 
-    const textureLoader = new THREE.TextureLoader();
+    const textureLoader = new THREE.TextureLoader(loadingManager);
     const diffuseTexture = textureLoader.load('textures/desk-022-col-metalness-4k.png'); 
     const normalTexture = textureLoader.load('textures/desk-022-nrm-metalness-4k.png'); 
     const roughnessTexture = textureLoader.load('textures/desk-022-roughness-metalness-4k.png'); 
@@ -156,7 +168,7 @@ const ThreeScene = () => {
     
     
     let lamp;
-    const loader2 = new GLTFLoader();
+    const loader2 = new GLTFLoader(loadingManager);
     loader2.load(
         'lamp.glb', 
         (gltf) => {

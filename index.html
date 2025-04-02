@@ -2,12 +2,58 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>Aaditya Neupane</title>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      #loading-screen {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: #111;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+          color: white;
+          font-family: Arial, sans-serif;
+      }
+      #loading-bar-container {
+          width: 50%;
+          max-width: 300px;
+          height: 20px;
+          background: #333;
+          margin-top: 20px;
+          border-radius: 10px;
+          overflow: hidden;
+      }
+      #loading-bar {
+          height: 100%;
+          width: 0%;
+          background: #4CAF50;
+          transition: width 0.3s;
+      }
+      #loading-text {
+          margin-top: 10px;
+          font-size: 14px;
+      }
+  </style>
+    
   </head>
   <body>
     <div id="root"></div>
+    <div id="loading-screen">
+      <h1> Loading...</h1>
+      <h4>Page Under Construction - Contents Limited</h4>
+      <h6> Click on Laptop / CV</h6>
+      <div id="loading-bar-container">
+          <div id="loading-bar"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
+
   </body>
 </html>
