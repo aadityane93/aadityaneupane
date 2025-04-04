@@ -249,7 +249,64 @@ const ThreeScene = () => {
             }
         }
     });
+
+    // Second raycaster
+    const raycaster2 = new THREE.Raycaster();
+
+    window.addEventListener("click", async (event) => {
+        if (!paper) {
+            console.warn("Laptop model is not loaded yet.");
+            return;
+        }
     
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+        raycaster2.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObject(paper, true);
+    
+        if (intersects.length > 0) {
+            console.log("Paper Model Clicked!");
+    
+            // Prevent multiple overlays
+            if (document.getElementById("fullscreenOverlay")) return;
+    
+            try {
+                // Fetch overlay.html from public folder
+                const response = await fetch("/overlay.html");
+                if (!response.ok) throw new Error("Failed to load overlay.html");
+                const htmlContent = await response.text();
+    
+                // Create overlay container
+                let overlay = document.createElement("div");
+                overlay.id = "fullscreenOverlay";
+                overlay.innerHTML = htmlContent;
+    
+                // Apply overlay styles
+                overlay.style.position = "fixed";
+                overlay.style.top = "0";
+                overlay.style.left = "0";
+                overlay.style.width = "100vw";
+                overlay.style.height = "100vh";
+                overlay.style.background = "rgba(0, 0, 0, 0.9)";
+                overlay.style.display = "flex";
+                overlay.style.justifyContent = "center";
+                overlay.style.alignItems = "center";
+                overlay.style.zIndex = "1000";
+    
+                // Append overlay to body
+                document.body.appendChild(overlay);
+    
+                // Close overlay when clicking the button
+                document.getElementById("closeOverlay").addEventListener("click", () => {
+                    overlay.remove();
+                });
+    
+            } catch (error) {
+                console.error("Error loading overlay:", error);
+            }
+        }
+    });
 
     // Animation Loop
     function animate() {
