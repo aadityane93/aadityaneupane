@@ -6,7 +6,21 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import { gsap } from "gsap";
 
+function wobble(obj) {
+    gsap.to(obj.scale, {
+      x: 1,
+      y: 0.9,
+      z: 1,
+      duration: 0.6,
+      yoyo: true,
+      repeat: 3,
+      ease: "sine.inOut"
+    });
+    obj.scale.set(10, 10, 10);
+  }
+  
 const loadingManager = new THREE.LoadingManager(
     ()=>{
     document.getElementById('loading-screen').style.display = 'none';
@@ -252,6 +266,26 @@ const ThreeScene = () => {
 
     // Second raycaster
     const raycaster2 = new THREE.Raycaster();
+
+    let hovering = false;
+
+    window.addEventListener('mousemove', (event) => {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        raycaster2.setFromCamera(mouse, camera);
+        const intersects2 = raycaster2.intersectObject(paper, true);
+        if (intersects2.length > 0) {
+            console.log("hoovered - 1");
+            if (hovering === false) {
+                console.log("hoovered - 2");
+                wobble(paper);
+                hovering = true;
+            }
+        } else {
+            hovering = false;
+        }
+
+      });
 
     window.addEventListener("click", async (event) => {
         if (!paper) {
