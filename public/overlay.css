@@ -1,0 +1,19 @@
+#closeOverlay {
+    position: fixed !important;
+    top: 0px !important;
+    right: 15px !important;
+    z-index: 9999 !important;
+    padding: 15px 15px;
+    background-color: rgba(255, 255, 255, 0);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 6%
+}
+#overlayFrame {
+width: 100vw;
+height: 100vh;
+border: none;
+}

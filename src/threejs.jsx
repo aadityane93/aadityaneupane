@@ -215,7 +215,7 @@ const ThreeScene = () => {
     
             try {
                 // Fetch overlay.html from public folder
-                const response = await fetch("/overlay.html");
+                const response = await fetch("/overlay-laptop.html");
                 if (!response.ok) throw new Error("Failed to load overlay.html");
                 const htmlContent = await response.text();
     
@@ -273,7 +273,7 @@ const ThreeScene = () => {
     
             try {
                 // Fetch overlay.html from public folder
-                const response = await fetch("/overlay.html");
+                const response = await fetch("/overlay-paper.html");
                 if (!response.ok) throw new Error("Failed to load overlay.html");
                 const htmlContent = await response.text();
     
