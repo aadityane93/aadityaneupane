@@ -301,26 +301,29 @@ const ThreeScene = () => {
                 wobble(paper,10,10,10);
                 setTimeout(() => {
                     hovering1 = true;
-                }, 1000)
-                paper.scale.set(10,10,10)
+                }, 5000)
+                
             }
         } else {
-            hovering1 = false;
+            setTimeout(() => {
+                hovering1 = false;
+            }, 5000)
         }
         raycaster3.setFromCamera(mouse, camera);
         const intersects3 = raycaster3.intersectObject(laptopModel, true);
         if (intersects3.length > 0 & hovering2 === false) {
             if (hovering2 === false) {
                 wobble(laptopModel,15,15,15);
+                wobble(laptopScreen,1,1,1)
                 setTimeout(() => {
                     hovering2 = true;
-                }, 3000)
+                }, 5000)
                 
             }
         } else {
             setTimeout(() => {
                 hovering2 = false;
-            }, 3000)
+            }, 5000)
         }
       });
 
