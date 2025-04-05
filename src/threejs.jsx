@@ -123,13 +123,15 @@ const ThreeScene = () => {
 
     // Laptop Screen Geometry
     const screenTextureLoader = new THREE.TextureLoader();
-    const textureScreen = screenTextureLoader.load('white.png');
+    const textureScreen = screenTextureLoader.load('vscode.png');
 
 
-    const geometryScreen = new THREE.PlaneGeometry(4, 3);
+    const geometryScreen = new THREE.PlaneGeometry(3.06, 1.8);
     const materialScreen = new THREE.MeshBasicMaterial({ map: textureScreen });
     const laptopScreen = new THREE.Mesh(geometryScreen, materialScreen);
-    laptopScreen.position.set(2,1,-1);
+    laptopScreen.position.set(4,8.46,-2.5); 
+    // 4, 8.7, -2.6
+    laptopScreen.rotation.x = (-25/180)*3.14
     scene.add(laptopScreen);
 
 
