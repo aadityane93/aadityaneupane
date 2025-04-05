@@ -385,6 +385,7 @@ const ThreeScene = () => {
     // for the initial animation
     let radius = 200; // Start far
     let angle = 0;   // Start angle
+    let y = 70;
     // Animation Loop
     function animate() {
       
@@ -393,16 +394,17 @@ const ThreeScene = () => {
   
       if (radius >= 6) {
         angle += 0.008;              
-        radius -= 0.2; 
+        radius -= 0.205;
+        y -=0.055;
   
         // Polar to Cartesian
         const x = radius * Math.cos(angle);
         const z = radius * Math.sin(angle);
-        const y = 16;
+        // const y = 9;
     
         camera.position.set(x, y, z);
         // Always looks at the object
-        camera.lookAt(1,8,1); 
+        camera.lookAt(5,8,5); 
 
       };
       controls.update();
