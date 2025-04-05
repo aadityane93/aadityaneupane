@@ -50,7 +50,7 @@ const ThreeScene = () => {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     // camera.position.set(8, 8, 12);
-    camera.position.set(100, 8, 12);
+    // camera.position.set(100, 8, 12);
 
     // const geometry = new THREE.TorusGeometry(50,7,40,60)
     // const material = new THREE.MeshStandardMaterial({color:0xFF6347, wireframe: true})
@@ -382,11 +382,33 @@ const ThreeScene = () => {
         }
     });
 
+    // for the initial animation
+    let radius = 200; // Start far
+    let angle = 0;   // Start angle
     // Animation Loop
     function animate() {
+      
       requestAnimationFrame(animate);
+
+  
+      if (radius >= 6) {
+        angle += 0.008;              
+        radius -= 0.2; 
+  
+        // Polar to Cartesian
+        const x = radius * Math.cos(angle);
+        const z = radius * Math.sin(angle);
+        const y = 16;
+    
+        camera.position.set(x, y, z);
+        // Always looks at the object
+        camera.lookAt(1,8,1); 
+
+      };
+      controls.update();
       renderer.render(scene, camera);
     }
+
 
     animate();
 
