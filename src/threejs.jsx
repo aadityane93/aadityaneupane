@@ -8,17 +8,19 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { gsap } from "gsap";
 
-function wobble(obj) {
+function wobble(obj, x,y,z) {
+    // console.log("dim - ", x,y,z)
+    
     gsap.to(obj.scale, {
       x: 1,
-      y: 0.9,
+      y: 1,
       z: 1,
       duration: 0.6,
       yoyo: true,
-      repeat: 3,
+      repeat: 1,
       ease: "sine.inOut"
     });
-    obj.scale.set(10, 10, 10);
+    obj.scale.set(x, y, z);
   }
   
 const loadingManager = new THREE.LoadingManager(
@@ -264,10 +266,12 @@ const ThreeScene = () => {
         }
     });
 
-    // Second raycaster
+    // Second raycaster for hoovering
     const raycaster2 = new THREE.Raycaster();
+    const raycaster3 = new THREE.Raycaster();
 
-    let hovering = false;
+    let hovering1 = false;
+    let hovering2 = false;
 
     window.addEventListener('mousemove', (event) => {
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -275,16 +279,27 @@ const ThreeScene = () => {
         raycaster2.setFromCamera(mouse, camera);
         const intersects2 = raycaster2.intersectObject(paper, true);
         if (intersects2.length > 0) {
-            console.log("hoovered - 1");
-            if (hovering === false) {
-                console.log("hoovered - 2");
-                wobble(paper);
-                hovering = true;
+            if (hovering1 === false) {
+                wobble(paper, 10, 10, 10);
+                setTimeout(() => {
+                    hovering1 = true;
+                }, 1000)
             }
         } else {
-            hovering = false;
+            hovering1 = false;
         }
-
+        raycaster3.setFromCamera(mouse, camera);
+        const intersects3 = raycaster3.intersectObject(laptopModel, true);
+        if (intersects3.length > 0) {
+            if (hovering2 === false) {
+                wobble(laptopModel, 15, 15, 15);
+                setTimeout(() => {
+                    hovering2 = true;
+                }, 1000)
+            }
+        } else {
+            hovering2 = false;
+        }
       });
 
     window.addEventListener("click", async (event) => {
