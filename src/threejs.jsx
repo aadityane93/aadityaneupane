@@ -102,7 +102,7 @@ const ThreeScene = () => {
     Array(200).fill().forEach(addStar);
 
     // Set Background
-    const spaceTexture = new THREE.TextureLoader().load('black.png');
+    const spaceTexture = new THREE.TextureLoader(loadingManager).load('black.png');
     scene.background = spaceTexture;
 
     // Load Laptop Model
@@ -122,7 +122,7 @@ const ThreeScene = () => {
     );
 
     // Laptop Screen Geometry
-    const screenTextureLoader = new THREE.TextureLoader();
+    const screenTextureLoader = new THREE.TextureLoader(loadingManager);
     const textureScreen = screenTextureLoader.load('vscode.png');
 
 
@@ -144,11 +144,11 @@ const ThreeScene = () => {
     const normalTexture = textureLoader.load('textures/desk-022-nrm-metalness-4k.png'); 
     const roughnessTexture = textureLoader.load('textures/desk-022-roughness-metalness-4k.png'); 
     
-    const mtlLoader = new MTLLoader();
+    const mtlLoader = new MTLLoader(loadingManager);
     mtlLoader.load('desk.mtl', (materials) => {
         materials.preload();
         
-        const objLoader = new OBJLoader();
+        const objLoader = new OBJLoader(loadingManager);
         objLoader.setMaterials(materials);
         objLoader.load('desk.obj', (object) => {
             deskModel = object;
@@ -169,16 +169,16 @@ const ThreeScene = () => {
 
     let paper;
 
-    const textureLoader1 = new THREE.TextureLoader();
+    const textureLoader1 = new THREE.TextureLoader(loadingManager);
     const diffuseTexture1 = textureLoader1.load('textures/a4-sheet-006-ao-metalness-4k.png'); 
     const normalTexture1 = textureLoader1.load('textures/a4-sheet-006-nrm-metalness-4k.png'); 
     const roughnessTexture1 = textureLoader1.load('textures/a4-sheet-006-roughness-metalness-4k.png'); 
     
-    const mtlLoader1 = new MTLLoader();
+    const mtlLoader1 = new MTLLoader(loadingManager);
     mtlLoader1.load('a4.mtl', (materials) => {
         materials.preload();
         
-        const objLoader1 = new OBJLoader();
+        const objLoader1 = new OBJLoader(loadingManager);
         objLoader1.setMaterials(materials);
         objLoader1.load('a4.obj', (object) => {
             paper = object;
