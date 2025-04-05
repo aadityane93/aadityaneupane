@@ -8,19 +8,22 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { gsap } from "gsap";
 
-function wobble(obj, x,y,z) {
+function wobble(obj,x,y,z) {
     // console.log("dim - ", x,y,z)
     
     gsap.to(obj.scale, {
-      x: 1,
-      y: 1,
-      z: 1,
-      duration: 0.6,
+      x: 0,
+      y: 0,
+      z: 0,
+      duration: 0.7,
       yoyo: true,
       repeat: 1,
-      ease: "sine.inOut"
+      ease: "sine.inOut",
+      onComplete: () => {
+        obj.scale.set(x,y,z)
+      }
     });
-    obj.scale.set(x, y, z);
+    
   }
   
 const loadingManager = new THREE.LoadingManager(
@@ -117,6 +120,19 @@ const ThreeScene = () => {
       (xhr) => console.log(`Loading progress: ${(xhr.loaded / xhr.total) * 100}%`),
       (error) => console.error('Error loading model:', error)
     );
+
+    // Laptop Screen Geometry
+    const screenTextureLoader = new THREE.TextureLoader();
+    const textureScreen = screenTextureLoader.load('white.png');
+
+
+    const geometryScreen = new THREE.PlaneGeometry(4, 3);
+    const materialScreen = new THREE.MeshBasicMaterial({ map: textureScreen });
+    const laptopScreen = new THREE.Mesh(geometryScreen, materialScreen);
+    laptopScreen.position.set(2,1,-1);
+    scene.add(laptopScreen);
+
+
 
 
     let deskModel;
@@ -280,25 +296,29 @@ const ThreeScene = () => {
         const intersects2 = raycaster2.intersectObject(paper, true);
         if (intersects2.length > 0) {
             if (hovering1 === false) {
-                wobble(paper, 10, 10, 10);
+                wobble(paper,10,10,10);
                 setTimeout(() => {
                     hovering1 = true;
                 }, 1000)
+                paper.scale.set(10,10,10)
             }
         } else {
             hovering1 = false;
         }
         raycaster3.setFromCamera(mouse, camera);
         const intersects3 = raycaster3.intersectObject(laptopModel, true);
-        if (intersects3.length > 0) {
+        if (intersects3.length > 0 & hovering2 === false) {
             if (hovering2 === false) {
-                wobble(laptopModel, 15, 15, 15);
+                wobble(laptopModel,15,15,15);
                 setTimeout(() => {
                     hovering2 = true;
-                }, 1000)
+                }, 3000)
+                
             }
         } else {
-            hovering2 = false;
+            setTimeout(() => {
+                hovering2 = false;
+            }, 3000)
         }
       });
 
