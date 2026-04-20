@@ -40,6 +40,43 @@
           margin-top: 10px;
           font-size: 14px;
       }
+
+      #intro-overlay {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100vw; height: 100vh;
+          background: rgba(0, 0, 0, 0.9);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1001;
+        }
+        #intro-overlay #overlayContent {
+          position: relative;
+          width: 100%; height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        #intro-overlay #overlayFrame {
+          width: 100vw;
+          height: 100vh;
+          border: none;
+        }
+        #intro-overlay #closeOverlay {
+          position: fixed;
+          top: 0px;
+          right: 0px;
+          z-index: 9999;
+          padding: 15px 60px;
+          background: #db383800;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 16px;
+          pointer-events: auto;
+        }
   </style>
     
   </head>
@@ -55,5 +92,22 @@
     </div>
     <script type="module" src="/src/main.jsx"></script>
 
+    <div id="intro-overlay">
+      <div id="overlayContent">
+        <iframe id="overlayFrame" src="https://aadityane93.github.io/vscode-portfolio"></iframe>
+        <button id="closeOverlay" title="Reload, if doesn't work"></button>
+      </div>
+    </div>
+    <script>
+      (function() {
+        var introOverlay = document.getElementById('intro-overlay');
+        var closeBtn = document.getElementById('closeOverlay');
+        if (closeBtn && introOverlay) {
+          closeBtn.addEventListener('click', function() {
+            introOverlay.style.display = 'none';
+          });
+        }
+      })();
+    </script>
   </body>
 </html>
