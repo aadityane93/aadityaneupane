@@ -51,7 +51,7 @@ const ThreeScene = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     // camera.position.set(8, 8, 12);
     // camera.position.set(100, 8, 12);
-
+    
     // const geometry = new THREE.TorusGeometry(50,7,40,60)
     // const material = new THREE.MeshStandardMaterial({color:0xFF6347, wireframe: true})
     // const torus = new THREE.Mesh(geometry, material);
@@ -229,6 +229,63 @@ const ThreeScene = () => {
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
+    // ===== FIXED: Use a reusable function to create overlays with working close buttons =====
+    function createOverlay(htmlContent) {
+        // Prevent multiple overlays
+        if (document.getElementById("fullscreenOverlay")) return;
+
+        // Create overlay container
+        const overlay = document.createElement("div");
+        overlay.id = "fullscreenOverlay";
+        overlay.innerHTML = htmlContent;
+
+        // Apply overlay styles
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100vw";
+        overlay.style.height = "100vh";
+        overlay.style.background = "rgba(0, 0, 0, 0.9)";
+        overlay.style.display = "flex";
+        overlay.style.justifyContent = "center";
+        overlay.style.alignItems = "center";
+        overlay.style.zIndex = "10000";
+
+        // Append overlay to body FIRST
+        document.body.appendChild(overlay);
+
+        // NOW find the close button within the overlay (guaranteed to be in DOM)
+        const closeBtn = overlay.querySelector("#closeOverlay");
+        if (closeBtn) {
+            // closeBtn.innerHTML = "&times;";
+            // closeBtn.style.position = "absolute";
+            // closeBtn.style.top = "15px";
+            // closeBtn.style.right = "25px";
+            // closeBtn.style.fontSize = "48px";
+            // closeBtn.style.color = "#fff";
+            // closeBtn.style.background = "none";
+            // closeBtn.style.border = "none";
+            // closeBtn.style.cursor = "pointer";
+            // closeBtn.style.zIndex = "10001";
+            // closeBtn.style.width = "50px";
+            // closeBtn.style.height = "50px";
+            // closeBtn.style.display = "flex";
+            // closeBtn.style.alignItems = "center";
+            // closeBtn.style.justifyContent = "center";
+            // closeBtn.style.lineHeight = "1";
+            // closeBtn.style.padding = "0";
+            // closeBtn.title = "Close";
+            
+            closeBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                overlay.remove();
+            });
+        }
+
+        return overlay;
+    }
+
     window.addEventListener("click", async (event) => {
         if (!laptopModel) {
             console.warn("Laptop model is not loaded yet.");
@@ -244,40 +301,11 @@ const ThreeScene = () => {
         if (intersects.length > 0) {
             console.log("Laptop Model Clicked!");
     
-            // Prevent multiple overlays
-            if (document.getElementById("fullscreenOverlay")) return;
-    
             try {
-                // Fetch overlay.html from public folder
                 const response = await fetch("/aadityaneupane/overlay-laptop.html");
                 if (!response.ok) throw new Error("Failed to load overlay.html");
                 const htmlContent = await response.text();
-    
-                // Create overlay container
-                let overlay = document.createElement("div");
-                overlay.id = "fullscreenOverlay";
-                overlay.innerHTML = htmlContent;
-    
-                // Apply overlay styles
-                overlay.style.position = "fixed";
-                overlay.style.top = "0";
-                overlay.style.left = "0";
-                overlay.style.width = "100vw";
-                overlay.style.height = "100vh";
-                overlay.style.background = "rgba(0, 0, 0, 0.9)";
-                overlay.style.display = "flex";
-                overlay.style.justifyContent = "center";
-                overlay.style.alignItems = "center";
-                overlay.style.zIndex = "1000";
-    
-                // Append overlay to body
-                document.body.appendChild(overlay);
-    
-                // Close overlay when clicking the button
-                document.getElementById("closeOverlay").addEventListener("click", () => {
-                    overlay.remove();
-                });
-    
+                createOverlay(htmlContent);
             } catch (error) {
                 console.error("Error loading overlay:", error);
             }
@@ -329,7 +357,7 @@ const ThreeScene = () => {
 
     window.addEventListener("click", async (event) => {
         if (!paper) {
-            console.warn("Laptop model is not loaded yet.");
+            console.warn("Paper model is not loaded yet.");
             return;
         }
     
@@ -342,40 +370,11 @@ const ThreeScene = () => {
         if (intersects.length > 0) {
             console.log("Paper Model Clicked!");
     
-            // Prevent multiple overlays
-            if (document.getElementById("fullscreenOverlay")) return;
-    
             try {
-                // Fetch overlay.html from public folder
                 const response = await fetch("/aadityaneupane/overlay-paper.html");
                 if (!response.ok) throw new Error("Failed to load overlay.html");
                 const htmlContent = await response.text();
-    
-                // Create overlay container
-                let overlay = document.createElement("div");
-                overlay.id = "fullscreenOverlay";
-                overlay.innerHTML = htmlContent;
-    
-                // Apply overlay styles
-                overlay.style.position = "fixed";
-                overlay.style.top = "0";
-                overlay.style.left = "0";
-                overlay.style.width = "100vw";
-                overlay.style.height = "100vh";
-                overlay.style.background = "rgba(0, 0, 0, 0.9)";
-                overlay.style.display = "flex";
-                overlay.style.justifyContent = "center";
-                overlay.style.alignItems = "center";
-                overlay.style.zIndex = "1000";
-    
-                // Append overlay to body
-                document.body.appendChild(overlay);
-    
-                // Close overlay when clicking the button
-                document.getElementById("closeOverlay").addEventListener("click", () => {
-                    overlay.remove();
-                });
-    
+                createOverlay(htmlContent);
             } catch (error) {
                 console.error("Error loading overlay:", error);
             }
