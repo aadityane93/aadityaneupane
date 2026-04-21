@@ -30,13 +30,20 @@ function wobble(obj, originalX, originalY, originalZ) {
   
 const loadingManager = new THREE.LoadingManager(
     ()=>{
-    document.getElementById('loading-screen').style.display = 'none';
-    // initScene();
-    animate();
+    // Hide loading screen when assets are loaded
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) loadingScreen.style.display = 'none';
     },
     (item, loaded, total) => {
         const percent = (loaded / total) * 100;
-        document.getElementById('loading-bar').style.width = `${percent}%`;
+        const loadingBar = document.getElementById('loading-bar');
+        if (loadingBar) loadingBar.style.width = `${percent}%`;
+    },
+    (error) => {
+        console.warn('Asset loading error:', error);
+        // Hide loading screen even if there are errors  so it don't block forever
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) loadingScreen.style.display = 'none';
     }
 );
 
@@ -423,6 +430,15 @@ const ThreeScene = () => {
 
 
     animate();
+
+    // hide loading screen after 10 seconds max
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen && loadingScreen.style.display !== 'none') {
+            loadingScreen.style.display = 'none';
+            console.log('Loading screen hidden by fallback timeout');
+        }
+    }, 10000);
 
     // Cleanup
     return () => {
