@@ -111,14 +111,14 @@ const ThreeScene = () => {
     Array(200).fill().forEach(addStar);
 
     // Set Background
-    const spaceTexture = new THREE.TextureLoader(loadingManager).load('black.png');
+    const spaceTexture = new THREE.TextureLoader(loadingManager).load('./black.png');
     scene.background = spaceTexture;
 
     // Load Laptop Model
     let laptopModel;
     const loader = new GLTFLoader(loadingManager);
     loader.load(
-      'laptop.glb',
+      './laptop.glb',
       (gltf) => {
         laptopModel = gltf.scene;
         scene.add(laptopModel);
@@ -132,7 +132,7 @@ const ThreeScene = () => {
 
     // Laptop Screen Geometry
     const screenTextureLoader = new THREE.TextureLoader(loadingManager);
-    const textureScreen = screenTextureLoader.load('vscode.png');
+    const textureScreen = screenTextureLoader.load('./vscode.png');
 
 
     const geometryScreen = new THREE.PlaneGeometry(3.06, 1.62);
@@ -149,17 +149,17 @@ const ThreeScene = () => {
     let deskModel;
 
     const textureLoader = new THREE.TextureLoader(loadingManager);
-    const diffuseTexture = textureLoader.load('textures/desk-022-col-metalness-4k.png'); 
-    const normalTexture = textureLoader.load('textures/desk-022-nrm-metalness-4k.png'); 
-    const roughnessTexture = textureLoader.load('textures/desk-022-roughness-metalness-4k.png'); 
+    const diffuseTexture = textureLoader.load('./textures/desk-022-col-metalness-4k.png'); 
+    const normalTexture = textureLoader.load('./textures/desk-022-nrm-metalness-4k.png'); 
+    const roughnessTexture = textureLoader.load('./textures/desk-022-roughness-metalness-4k.png'); 
     
     const mtlLoader = new MTLLoader(loadingManager);
-    mtlLoader.load('desk.mtl', (materials) => {
+    mtlLoader.load('./desk.mtl', (materials) => {
         materials.preload();
         
         const objLoader = new OBJLoader(loadingManager);
         objLoader.setMaterials(materials);
-        objLoader.load('desk.obj', (object) => {
+        objLoader.load('./desk.obj', (object) => {
             deskModel = object;
             scene.add(deskModel);
             deskModel.position.set(0, 0, 0);
@@ -179,17 +179,17 @@ const ThreeScene = () => {
     let paper;
 
     const textureLoader1 = new THREE.TextureLoader(loadingManager);
-    const diffuseTexture1 = textureLoader1.load('textures/a4-sheet-006-ao-metalness-4k.png'); 
-    const normalTexture1 = textureLoader1.load('textures/a4-sheet-006-nrm-metalness-4k.png'); 
-    const roughnessTexture1 = textureLoader1.load('textures/a4-sheet-006-roughness-metalness-4k.png'); 
+    const diffuseTexture1 = textureLoader1.load('./textures/a4-sheet-006-ao-metalness-4k.png'); 
+    const normalTexture1 = textureLoader1.load('./textures/a4-sheet-006-nrm-metalness-4k.png'); 
+    const roughnessTexture1 = textureLoader1.load('./textures/a4-sheet-006-roughness-metalness-4k.png'); 
     
     const mtlLoader1 = new MTLLoader(loadingManager);
-    mtlLoader1.load('a4.mtl', (materials) => {
+    mtlLoader1.load('./a4.mtl', (materials) => {
         materials.preload();
         
         const objLoader1 = new OBJLoader(loadingManager);
         objLoader1.setMaterials(materials);
-        objLoader1.load('a4.obj', (object) => {
+        objLoader1.load('./a4.obj', (object) => {
             paper = object;
             scene.add(paper);
             paper.position.set(-2.5, 7.41, 3);
@@ -214,7 +214,7 @@ const ThreeScene = () => {
     let lamp;
     const loader2 = new GLTFLoader(loadingManager);
     loader2.load(
-        'lamp.glb', 
+        './lamp.glb', 
         (gltf) => {
             lamp = gltf.scene;
             scene.add(lamp);
@@ -311,7 +311,7 @@ const ThreeScene = () => {
             console.log("Laptop Model Clicked!");
     
             try {
-                const response = await fetch("/aadityaneupane/overlay-laptop.html");
+                const response = await fetch("./overlay-laptop.html");
                 if (!response.ok) throw new Error("Failed to load overlay.html");
                 const htmlContent = await response.text();
                 createOverlay(htmlContent);
@@ -380,7 +380,7 @@ const ThreeScene = () => {
             console.log("Paper Model Clicked!");
     
             try {
-                const response = await fetch("/aadityaneupane/overlay-paper.html");
+                const response = await fetch("./overlay-paper.html");
                 if (!response.ok) throw new Error("Failed to load overlay.html");
                 const htmlContent = await response.text();
                 createOverlay(htmlContent);
