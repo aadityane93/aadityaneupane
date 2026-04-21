@@ -8,22 +8,24 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { gsap } from "gsap";
 
-function wobble(obj,x,y,z) {
-    // console.log("dim - ", x,y,z)
+function wobble(obj, originalX, originalY, originalZ) {
+    // Prevent overlapping animations
+    gsap.killTweensOf(obj.scale);
+    
+    // start from original scale, then animate to 85% and back
+    obj.scale.set(originalX, originalY, originalZ);
+    
+    const scaleFactor = 0.85; // Only scale to 85%
     
     gsap.to(obj.scale, {
-      x: 0,
-      y: 0,
-      z: 0,
-      duration: 0.7,
+      x: originalX * scaleFactor,
+      y: originalY * scaleFactor,
+      z: originalZ * scaleFactor,
+      duration: 0.5,
       yoyo: true,
       repeat: 1,
-      ease: "sine.inOut",
-      onComplete: () => {
-        obj.scale.set(x,y,z)
-      }
+      ease: "sine.inOut"
     });
-    
   }
   
 const loadingManager = new THREE.LoadingManager(
@@ -126,10 +128,10 @@ const ThreeScene = () => {
     const textureScreen = screenTextureLoader.load('vscode.png');
 
 
-    const geometryScreen = new THREE.PlaneGeometry(3.06, 1.8);
+    const geometryScreen = new THREE.PlaneGeometry(3.06, 1.62);
     const materialScreen = new THREE.MeshBasicMaterial({ map: textureScreen });
     const laptopScreen = new THREE.Mesh(geometryScreen, materialScreen);
-    laptopScreen.position.set(4,8.46,-2.5); 
+    laptopScreen.position.set(4,8.46,-2.46); 
     // 4, 8.7, -2.6
     laptopScreen.rotation.x = (-25/180)*3.14
     scene.add(laptopScreen);
@@ -326,7 +328,7 @@ const ThreeScene = () => {
         const intersects2 = raycaster2.intersectObject(paper, true);
         if (intersects2.length > 0) {
             if (hovering1 === false) {
-                wobble(paper,10,10,10);
+                wobble(paper, 10, 10, 10);
                 setTimeout(() => {
                     hovering1 = true;
                 }, 5000)
@@ -341,8 +343,8 @@ const ThreeScene = () => {
         const intersects3 = raycaster3.intersectObject(laptopModel, true);
         if (intersects3.length > 0 & hovering2 === false) {
             if (hovering2 === false) {
-                wobble(laptopModel,15,15,15);
-                wobble(laptopScreen,1,1,1)
+                wobble(laptopModel, 15, 15, 15);
+                wobble(laptopScreen, 1, 1, 1);
                 setTimeout(() => {
                     hovering2 = true;
                 }, 5000)
