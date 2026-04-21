@@ -383,17 +383,26 @@ const ThreeScene = () => {
         }
     });
 
-    // for the initial animation
+    // for the initial animation.. starts paused until overlay is closed
     let radius = 200; // Start far
     let angle = 0;   // Start angle
     let y = 70;
+    let animationStarted = false;
+
+    // Listen for close overlay button to start animation..
+    document.addEventListener("click", (e) => {
+      if (e.target && e.target.id === "closeOverlay") {
+        animationStarted = true;
+      }
+    });
+
     // Animation Loop
     function animate() {
       
       requestAnimationFrame(animate);
 
   
-      if (radius >= 6) {
+      if (animationStarted && radius >= 6) {
         angle += 0.008;              
         radius -= 0.205;
         y -=0.055;
