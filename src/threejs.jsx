@@ -47,9 +47,12 @@ const ThreeScene = () => {
     let introClosed = introOverlay?.style.display === 'none';
     let animationStarted = false;
     let animationFrame;
-    let radius = 200;
-    let angle = 0;
-    let y = 70;
+    const cameraTarget = new THREE.Vector3(4, 8, -1);
+    const orbitStep = 0.008; // Original rotation per rendered frame.
+    const totalOrbitAngle = Math.PI * 2.5;
+    const downwardAngle = THREE.MathUtils.degToRad(45);
+    let introProgress = 0;
+    let cameraMovedByUser = false;
 
     const startIntroIfReady = () => {
       if (!disposed && assetsReady && introClosed) {
@@ -89,9 +92,22 @@ const ThreeScene = () => {
     }, 90000);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(radius, y, 0);
-    camera.lookAt(5, 8, 5);
+    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const setIntroCamera = (progress) => {
+      // Move back on narrow screens so the whole table stays in view.
+      const endDistance = Math.max(11, 12.8 / camera.aspect);
+      const radius = THREE.MathUtils.lerp(200, endDistance, progress);
+      const angle = totalOrbitAngle * progress;
+      const endHeight = cameraTarget.y + endDistance * Math.tan(downwardAngle);
+      const height = THREE.MathUtils.lerp(70, endHeight, progress);
+      camera.position.set(
+        cameraTarget.x + radius * Math.cos(angle),
+        height,
+        cameraTarget.z + radius * Math.sin(angle)
+      );
+      camera.lookAt(cameraTarget);
+    };
+    setIntroCamera(0);
     const renderer = new THREE.WebGLRenderer();
     mount.appendChild(renderer.domElement);
 
@@ -111,6 +127,7 @@ const ThreeScene = () => {
       renderer.setSize(window.innerWidth, window.innerHeight);
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
+      if (!cameraMovedByUser) setIntroCamera(introProgress);
     };
 
     window.addEventListener("resize", resizeHandler);
@@ -136,7 +153,10 @@ const ThreeScene = () => {
     scene.add(gridHelper)
     // Orbit Controls
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(5, 8, 5);
+    controls.target.copy(cameraTarget);
+    controls.enabled = false;
+    const handleControlStart = () => { cameraMovedByUser = true; };
+    controls.addEventListener('start', handleControlStart);
 
     // Star Background
     function addStar() {
@@ -439,28 +459,17 @@ const ThreeScene = () => {
     function animate() {
       animationFrame = requestAnimationFrame(animate);
 
-  
-      if (animationStarted && radius >= 6) {
-        angle += 0.008;              
-        radius -= 0.205;
-        y -=0.055;
-  
-        // Polar to Cartesian
-        const x = radius * Math.cos(angle);
-        const z = radius * Math.sin(angle);
-        // const y = 9;
-    
-        camera.position.set(x, y, z);
-        // Always looks at the object
-        camera.lookAt(5,8,5); 
-
-      };
+      if (animationStarted && introProgress < 1) {
+        introProgress = Math.min(1, introProgress + orbitStep / totalOrbitAngle);
+        setIntroCamera(introProgress);
+        if (introProgress === 1) controls.enabled = true;
+      }
       controls.update();
       renderer.render(scene, camera);
     }
 
 
-    animate();
+    animationFrame = requestAnimationFrame(animate);
 
     // Cleanup
     return () => {
@@ -474,6 +483,7 @@ const ThreeScene = () => {
       window.removeEventListener('click', handlePaperClick);
       window.removeEventListener('mousemove', handleMouseMove);
       document.getElementById('fullscreenOverlay')?.remove();
+      controls.removeEventListener('start', handleControlStart);
       controls.dispose();
       mount.removeChild(renderer.domElement);
       renderer.dispose();
