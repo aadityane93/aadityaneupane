@@ -1,4 +1,3 @@
-import React from 'react'
 import { useEffect, useRef } from "react";
 import './threestyles.css';
 import * as THREE from 'three';
@@ -28,26 +27,73 @@ function wobble(obj, originalX, originalY, originalZ) {
     });
   }
   
-const loadingManager = new THREE.LoadingManager(
-    ()=>{
-    document.getElementById('loading-screen').style.display = 'none';
-    // initScene();
-    animate();
-    },
-    (item, loaded, total) => {
-        const percent = (loaded / total) * 100;
-        document.getElementById('loading-bar').style.width = `${percent}%`;
-    }
-);
-
 const ThreeScene = () => {
   const mountRef = useRef(null);
 
   useEffect(() => {
+    const mount = mountRef.current;
+    const loadingScreen = document.getElementById('loading-screen');
+    const loadingBar = document.getElementById('loading-bar');
+    const loadingTitle = loadingScreen.querySelector('h1');
+    const retryButton = document.getElementById('retry-loading');
+    loadingScreen.style.display = 'flex';
+    loadingTitle.textContent = 'Loading...';
+    loadingBar.style.width = '0%';
+    retryButton.hidden = true;
+    const introOverlay = document.getElementById('intro-overlay');
+    const introCloseButton = introOverlay?.querySelector('#closeOverlay');
+    let disposed = false;
+    let assetsReady = false;
+    let introClosed = introOverlay?.style.display === 'none';
+    let animationStarted = false;
+    let animationFrame;
+    let radius = 200;
+    let angle = 0;
+    let y = 70;
+
+    const startIntroIfReady = () => {
+      if (!disposed && assetsReady && introClosed) {
+        loadingScreen.style.display = 'none';
+        animationStarted = true;
+      }
+    };
+
+    const handleIntroClose = () => {
+      introClosed = true;
+      startIntroIfReady();
+    };
+    const handleRetry = () => window.location.reload();
+    introCloseButton?.addEventListener('click', handleIntroClose);
+    retryButton.addEventListener('click', handleRetry);
+
+    // Keep loading state tied to this scene mount. The manager can finish before
+    // or after the visitor dismisses the intro overlay.
+    const loadingManager = new THREE.LoadingManager();
+    loadingManager.onLoad = () => {
+      if (disposed) return;
+      assetsReady = true;
+      clearTimeout(loadTimeout);
+      loadingScreen.style.display = 'none';
+      startIntroIfReady();
+    };
+    loadingManager.onProgress = (_item, loaded, total) => {
+      if (!disposed) loadingBar.style.width = `${(loaded / total) * 100}%`;
+    };
+    loadingManager.onError = (item) => {
+      console.error('Failed to load scene asset:', item);
+    };
+    const loadTimeout = window.setTimeout(() => {
+      if (disposed || assetsReady) return;
+      loadingTitle.textContent = 'This scene is taking longer than expected';
+      retryButton.hidden = false;
+    }, 90000);
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(radius, y, 0);
+    camera.lookAt(5, 8, 5);
     const renderer = new THREE.WebGLRenderer();
-    mountRef.current.appendChild(renderer.domElement);
+    mount.appendChild(renderer.domElement);
 
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -90,6 +136,7 @@ const ThreeScene = () => {
     scene.add(gridHelper)
     // Orbit Controls
     const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(5, 8, 5);
 
     // Star Background
     function addStar() {
@@ -113,6 +160,7 @@ const ThreeScene = () => {
     loader.load(
       './laptop.glb',
       (gltf) => {
+        if (disposed) return;
         laptopModel = gltf.scene;
         scene.add(laptopModel);
         laptopModel.position.set(4, 7.41, -1);
@@ -148,11 +196,13 @@ const ThreeScene = () => {
     
     const mtlLoader = new MTLLoader(loadingManager);
     mtlLoader.load('./desk.mtl', (materials) => {
+        if (disposed) return;
         materials.preload();
         
         const objLoader = new OBJLoader(loadingManager);
         objLoader.setMaterials(materials);
         objLoader.load('./desk.obj', (object) => {
+            if (disposed) return;
             deskModel = object;
             scene.add(deskModel);
             deskModel.position.set(0, 0, 0);
@@ -178,11 +228,13 @@ const ThreeScene = () => {
     
     const mtlLoader1 = new MTLLoader(loadingManager);
     mtlLoader1.load('./a4.mtl', (materials) => {
+        if (disposed) return;
         materials.preload();
         
         const objLoader1 = new OBJLoader(loadingManager);
         objLoader1.setMaterials(materials);
         objLoader1.load('./a4.obj', (object) => {
+            if (disposed) return;
             paper = object;
             scene.add(paper);
             paper.position.set(-2.5, 7.41, 3);
@@ -209,6 +261,7 @@ const ThreeScene = () => {
     loader2.load(
         './lamp.glb', 
         (gltf) => {
+            if (disposed) return;
             lamp = gltf.scene;
             scene.add(lamp);
             lamp.position.set(-13, 0, -1);
@@ -288,7 +341,8 @@ const ThreeScene = () => {
         return overlay;
     }
 
-    window.addEventListener("click", async (event) => {
+    const handleLaptopClick = async (event) => {
+        if (event.target instanceof Element && event.target.closest('#fullscreenOverlay, #intro-overlay')) return;
         if (!laptopModel) {
             console.warn("Laptop model is not loaded yet.");
             return;
@@ -307,12 +361,13 @@ const ThreeScene = () => {
                 const response = await fetch("./overlay-laptop.html");
                 if (!response.ok) throw new Error("Failed to load overlay.html");
                 const htmlContent = await response.text();
-                createOverlay(htmlContent);
+                if (!disposed) createOverlay(htmlContent);
             } catch (error) {
                 console.error("Error loading overlay:", error);
             }
         }
-    });
+    };
+    window.addEventListener("click", handleLaptopClick);
 
     // Second raycaster for hoovering
     const raycaster2 = new THREE.Raycaster();
@@ -321,43 +376,39 @@ const ThreeScene = () => {
     let hovering1 = false;
     let hovering2 = false;
 
-    window.addEventListener('mousemove', (event) => {
+    const handleMouseMove = (event) => {
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-        raycaster2.setFromCamera(mouse, camera);
-        const intersects2 = raycaster2.intersectObject(paper, true);
-        if (intersects2.length > 0) {
-            if (hovering1 === false) {
+        if (paper) {
+          raycaster2.setFromCamera(mouse, camera);
+          const intersects2 = raycaster2.intersectObject(paper, true);
+          if (intersects2.length > 0) {
+            if (!hovering1) {
                 wobble(paper, 10, 10, 10);
-                setTimeout(() => {
-                    hovering1 = true;
-                }, 5000)
-                
+                hovering1 = true;
             }
-        } else {
-            setTimeout(() => {
-                hovering1 = false;
-            }, 5000)
+          } else {
+            hovering1 = false;
+          }
         }
-        raycaster3.setFromCamera(mouse, camera);
-        const intersects3 = raycaster3.intersectObject(laptopModel, true);
-        if (intersects3.length > 0 & hovering2 === false) {
-            if (hovering2 === false) {
+        if (laptopModel) {
+          raycaster3.setFromCamera(mouse, camera);
+          const intersects3 = raycaster3.intersectObject(laptopModel, true);
+          if (intersects3.length > 0) {
+            if (!hovering2) {
                 wobble(laptopModel, 15, 15, 15);
                 wobble(laptopScreen, 1, 1, 1);
-                setTimeout(() => {
-                    hovering2 = true;
-                }, 5000)
-                
+                hovering2 = true;
             }
-        } else {
-            setTimeout(() => {
-                hovering2 = false;
-            }, 5000)
+          } else {
+            hovering2 = false;
+          }
         }
-      });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
 
-    window.addEventListener("click", async (event) => {
+    const handlePaperClick = async (event) => {
+        if (event.target instanceof Element && event.target.closest('#fullscreenOverlay, #intro-overlay')) return;
         if (!paper) {
             console.warn("Paper model is not loaded yet.");
             return;
@@ -367,7 +418,7 @@ const ThreeScene = () => {
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     
         raycaster2.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObject(paper, true);
+        const intersects = raycaster2.intersectObject(paper, true);
     
         if (intersects.length > 0) {
             console.log("Paper Model Clicked!");
@@ -376,30 +427,17 @@ const ThreeScene = () => {
                 const response = await fetch("./overlay-paper.html");
                 if (!response.ok) throw new Error("Failed to load overlay.html");
                 const htmlContent = await response.text();
-                createOverlay(htmlContent);
+                if (!disposed) createOverlay(htmlContent);
             } catch (error) {
                 console.error("Error loading overlay:", error);
             }
         }
-    });
-
-    // for the initial animation.. starts paused until overlay is closed
-    let radius = 200; // Start far
-    let angle = 0;   // Start angle
-    let y = 70;
-    let animationStarted = false;
-
-    // Listen for close overlay button to start animation..
-    document.addEventListener("click", (e) => {
-      if (e.target && e.target.id === "closeOverlay") {
-        animationStarted = true;
-      }
-    });
+    };
+    window.addEventListener("click", handlePaperClick);
 
     // Animation Loop
     function animate() {
-      
-      requestAnimationFrame(animate);
+      animationFrame = requestAnimationFrame(animate);
 
   
       if (animationStarted && radius >= 6) {
@@ -426,8 +464,18 @@ const ThreeScene = () => {
 
     // Cleanup
     return () => {
+      disposed = true;
+      clearTimeout(loadTimeout);
+      cancelAnimationFrame(animationFrame);
+      introCloseButton?.removeEventListener('click', handleIntroClose);
+      retryButton.removeEventListener('click', handleRetry);
       window.removeEventListener("resize", resizeHandler);
-      mountRef.current && mountRef.current.removeChild(renderer.domElement);
+      window.removeEventListener('click', handleLaptopClick);
+      window.removeEventListener('click', handlePaperClick);
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.getElementById('fullscreenOverlay')?.remove();
+      controls.dispose();
+      mount.removeChild(renderer.domElement);
       renderer.dispose();
     };
   }, []);
