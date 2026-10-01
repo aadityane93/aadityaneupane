@@ -15,6 +15,17 @@ export default defineConfig({
   }],
   build: {
     outDir: 'dist',
+    rollupOptions: {
+      output: {
+        // Keep dependency URLs stable when application code changes. This
+        // chunk is still fetched only by the deferred application import.
+        manualChunks(id) {
+          if (id.replaceAll('\\', '/').includes('/node_modules/')) {
+            return 'vendor';
+          }
+        },
+      },
+    },
   },
   base: '/',
 });
