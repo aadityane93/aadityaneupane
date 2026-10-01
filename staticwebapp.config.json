@@ -1,11 +1,15 @@
 {
   "routes": [
     {
-      "route": "/*",
-      "serve": "/index.html",
-      "statusCode": 200
+      "route": "/assets/*",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
     }
   ],
+  "globalHeaders": {
+    "Cache-Control": "public, max-age=0, must-revalidate"
+  },
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": ["/assets/*"]
