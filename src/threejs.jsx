@@ -47,6 +47,7 @@ const ThreeScene = () => {
     let introClosed = introOverlay?.style.display === 'none';
     let animationStarted = false;
     let animationFrame;
+    let rendering = false;
     const cameraTarget = new THREE.Vector3(4, 8, -1);
     const orbitStep = 0.008; // Original rotation per rendered frame.
     const totalOrbitAngle = Math.PI * 2.5;
@@ -55,9 +56,19 @@ const ThreeScene = () => {
     let cameraMovedByUser = false;
 
     const startIntroIfReady = () => {
-      if (!disposed && assetsReady && introClosed) {
+      if (!disposed && assetsReady && introClosed && !animationStarted) {
+        // Upload the first frame while the loading screen still covers it.
+        try {
+          renderer.render(scene, camera);
+        } catch (error) {
+          console.error('Unable to render the scene:', error);
+          loadingTitle.textContent = 'Unable to display the scene';
+          retryButton.hidden = false;
+          return;
+        }
         loadingScreen.style.display = 'none';
         animationStarted = true;
+        startRenderLoop();
       }
     };
 
@@ -76,7 +87,6 @@ const ThreeScene = () => {
       if (disposed) return;
       assetsReady = true;
       clearTimeout(loadTimeout);
-      loadingScreen.style.display = 'none';
       startIntroIfReady();
     };
     loadingManager.onProgress = (_item, loaded, total) => {
@@ -111,7 +121,7 @@ const ThreeScene = () => {
     const renderer = new THREE.WebGLRenderer();
     mount.appendChild(renderer.domElement);
 
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     // camera.position.set(8, 8, 12);
     // camera.position.set(100, 8, 12);
@@ -124,6 +134,7 @@ const ThreeScene = () => {
 
     // Resize handler
     const resizeHandler = () => {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -158,17 +169,22 @@ const ThreeScene = () => {
     const handleControlStart = () => { cameraMovedByUser = true; };
     controls.addEventListener('start', handleControlStart);
 
-    // Star Background
-    function addStar() {
-      const geometry = new THREE.SphereGeometry(0.25, 24, 24);
-      const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-      const star = new THREE.Mesh(geometry, material);
-      const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
-      star.position.set(x, y, z);
-      scene.add(star);
+    // One instanced draw call keeps the original round stars.
+    const starGeometry = new THREE.SphereGeometry(0.25, 24, 24);
+    const starMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const stars = new THREE.InstancedMesh(starGeometry, starMaterial, 200);
+    const starTransform = new THREE.Matrix4();
+    for (let i = 0; i < 200; i++) {
+      starTransform.makeTranslation(
+        THREE.MathUtils.randFloatSpread(100),
+        THREE.MathUtils.randFloatSpread(100),
+        THREE.MathUtils.randFloatSpread(100)
+      );
+      stars.setMatrixAt(i, starTransform);
     }
-
-    Array(200).fill().forEach(addStar);
+    stars.instanceMatrix.needsUpdate = true;
+    stars.computeBoundingSphere();
+    scene.add(stars);
 
     // Set Background
     const spaceTexture = new THREE.TextureLoader(loadingManager).load('./black.png');
@@ -187,7 +203,7 @@ const ThreeScene = () => {
         laptopModel.scale.set(15, 15, 15);
         laptopModel.rotation.y = THREE.MathUtils.degToRad(90);
       },
-      (xhr) => console.log(`Loading progress: ${(xhr.loaded / xhr.total) * 100}%`),
+      undefined,
       (error) => console.error('Error loading model:', error)
     );
 
@@ -210,8 +226,8 @@ const ThreeScene = () => {
     let deskModel;
 
     const textureLoader = new THREE.TextureLoader(loadingManager);
-    const diffuseTexture = textureLoader.load('./textures/desk-022-col-metalness-4k.png'); 
-    const normalTexture = textureLoader.load('./textures/desk-022-nrm-metalness-4k.png'); 
+    const diffuseTexture = textureLoader.load('./textures/desk-color-2k.jpg');
+    const normalTexture = textureLoader.load('./textures/desk-normal-2k.png');
     const roughnessTexture = textureLoader.load('./textures/desk-022-roughness-metalness-4k.png'); 
     
     const mtlLoader = new MTLLoader(loadingManager);
@@ -242,8 +258,7 @@ const ThreeScene = () => {
     let paper;
 
     const textureLoader1 = new THREE.TextureLoader(loadingManager);
-    const diffuseTexture1 = textureLoader1.load('./textures/a4-sheet-006-ao-metalness-4k.png'); 
-    const normalTexture1 = textureLoader1.load('./textures/a4-sheet-006-nrm-metalness-4k.png'); 
+    const diffuseTexture1 = textureLoader1.load('./textures/paper-art-1k.jpg');
     const roughnessTexture1 = textureLoader1.load('./textures/a4-sheet-006-roughness-metalness-4k.png'); 
     
     const mtlLoader1 = new MTLLoader(loadingManager);
@@ -267,7 +282,6 @@ const ThreeScene = () => {
             paper.traverse((child) => {
                 if (child.isMesh) {
                     child.material.map = diffuseTexture1;      
-                    child.material.normalMap = normalTexture1;
                     child.material.roughnessMap = roughnessTexture1;
                     child.material.needsUpdate = true;
                 }
@@ -292,9 +306,7 @@ const ThreeScene = () => {
             // lamp.rotateOnAxis(axis, angle);
     
         },
-        (xhr) => {
-            console.log(`Loading progress: ${(xhr.loaded / xhr.total) * 100}%`);
-        },
+        undefined,
         (error) => {
             console.error('Error loading model:', error);
         }
@@ -328,6 +340,7 @@ const ThreeScene = () => {
 
         // Append overlay to body FIRST
         document.body.appendChild(overlay);
+        stopRenderLoop();
 
         // NOW find the close button within the overlay (guaranteed to be in DOM)
         const closeBtn = overlay.querySelector("#closeOverlay");
@@ -355,6 +368,7 @@ const ThreeScene = () => {
                 e.preventDefault();
                 e.stopPropagation();
                 overlay.remove();
+                startRenderLoop();
             });
         }
 
@@ -362,6 +376,7 @@ const ThreeScene = () => {
     }
 
     const handleLaptopClick = async (event) => {
+        if (!rendering) return;
         if (event.target instanceof Element && event.target.closest('#fullscreenOverlay, #intro-overlay')) return;
         if (!laptopModel) {
             console.warn("Laptop model is not loaded yet.");
@@ -395,10 +410,19 @@ const ThreeScene = () => {
 
     let hovering1 = false;
     let hovering2 = false;
+    let pointerDirty = false;
 
     const handleMouseMove = (event) => {
+        if (!rendering) return;
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        pointerDirty = true;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
+    const updateHover = () => {
+        if (!pointerDirty) return;
+        pointerDirty = false;
         if (paper) {
           raycaster2.setFromCamera(mouse, camera);
           const intersects2 = raycaster2.intersectObject(paper, true);
@@ -425,9 +449,9 @@ const ThreeScene = () => {
           }
         }
     };
-    window.addEventListener('mousemove', handleMouseMove);
 
     const handlePaperClick = async (event) => {
+        if (!rendering) return;
         if (event.target instanceof Element && event.target.closest('#fullscreenOverlay, #intro-overlay')) return;
         if (!paper) {
             console.warn("Paper model is not loaded yet.");
@@ -456,7 +480,19 @@ const ThreeScene = () => {
     window.addEventListener("click", handlePaperClick);
 
     // Animation Loop
+    function startRenderLoop() {
+      if (disposed || rendering || document.hidden) return;
+      rendering = true;
+      animationFrame = requestAnimationFrame(animate);
+    }
+
+    function stopRenderLoop() {
+      rendering = false;
+      cancelAnimationFrame(animationFrame);
+    }
+
     function animate() {
+      if (!rendering) return;
       animationFrame = requestAnimationFrame(animate);
 
       if (animationStarted && introProgress < 1) {
@@ -464,27 +500,37 @@ const ThreeScene = () => {
         setIntroCamera(introProgress);
         if (introProgress === 1) controls.enabled = true;
       }
+      updateHover();
       controls.update();
       renderer.render(scene, camera);
     }
 
-
-    animationFrame = requestAnimationFrame(animate);
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopRenderLoop();
+      } else if (animationStarted && !document.getElementById('fullscreenOverlay')) {
+        startRenderLoop();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Cleanup
     return () => {
       disposed = true;
       clearTimeout(loadTimeout);
-      cancelAnimationFrame(animationFrame);
+      stopRenderLoop();
       introCloseButton?.removeEventListener('click', handleIntroClose);
       retryButton.removeEventListener('click', handleRetry);
       window.removeEventListener("resize", resizeHandler);
       window.removeEventListener('click', handleLaptopClick);
       window.removeEventListener('click', handlePaperClick);
       window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.getElementById('fullscreenOverlay')?.remove();
       controls.removeEventListener('start', handleControlStart);
       controls.dispose();
+      starGeometry.dispose();
+      starMaterial.dispose();
       mount.removeChild(renderer.domElement);
       renderer.dispose();
     };
