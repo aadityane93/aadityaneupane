@@ -54,7 +54,7 @@ const ThreeScene = () => {
     let previousFrameTime = null;
     let rendering = false;
     const cameraTarget = new THREE.Vector3(4, 8, -1);
-    const orbitSpeed = 0.008 * 60; // Preserve the existing speed at 60 FPS.
+    const orbitSpeed = 0.011 * 60; // Preserve the existing speed at 60 FPS.
     const totalOrbitAngle = Math.PI * 2.5;
     const downwardAngle = THREE.MathUtils.degToRad(45);
     let introProgress = 0;
