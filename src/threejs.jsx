@@ -6,8 +6,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { gsap } from "gsap";
+import { cullStaticInstances } from './cullStaticInstances.js';
+import { indexExactGeometry } from './indexExactGeometry.js';
 
-function wobble(obj, originalX, originalY, originalZ) {
+function wobble(obj, originalX, originalY, originalZ, requestRender) {
     // Prevent overlapping animations
     gsap.killTweensOf(obj.scale);
     
@@ -23,7 +25,9 @@ function wobble(obj, originalX, originalY, originalZ) {
       duration: 0.5,
       yoyo: true,
       repeat: 1,
-      ease: "sine.inOut"
+      ease: "sine.inOut",
+      onUpdate: requestRender,
+      onComplete: requestRender,
     });
   }
   
@@ -46,19 +50,21 @@ const ThreeScene = () => {
     let assetsReady = false;
     let introClosed = introOverlay?.style.display === 'none';
     let animationStarted = false;
-    let animationFrame;
+    let animationFrame = null;
+    let previousFrameTime = null;
     let rendering = false;
     const cameraTarget = new THREE.Vector3(4, 8, -1);
-    const orbitStep = 0.008; // Original rotation per rendered frame.
+    const orbitSpeed = 0.008 * 60; // Preserve the existing speed at 60 FPS.
     const totalOrbitAngle = Math.PI * 2.5;
     const downwardAngle = THREE.MathUtils.degToRad(45);
     let introProgress = 0;
     let cameraMovedByUser = false;
 
     const startIntroIfReady = () => {
-      if (!disposed && assetsReady && introClosed && !animationStarted) {
+      if (!disposed && assetsReady && introClosed && !animationStarted && !document.hidden) {
         // Upload the first frame while the loading screen still covers it.
         try {
+          updateVisibleStars(camera);
           renderer.render(scene, camera);
         } catch (error) {
           console.error('Unable to render the scene:', error);
@@ -83,7 +89,26 @@ const ThreeScene = () => {
     // Keep loading state tied to this scene mount. The manager can finish before
     // or after the visitor dismisses the intro overlay.
     const loadingManager = new THREE.LoadingManager();
-    loadingManager.onLoad = () => {
+    let preparingScene = false;
+    const geometryPreparation = [];
+    loadingManager.onLoad = async () => {
+      if (disposed || preparingScene) return;
+      preparingScene = true;
+      try {
+        await Promise.all(geometryPreparation);
+        if (disposed) return;
+        // Only the camera and hover targets change transforms at runtime.
+        scene.traverse((object) => {
+          if (object !== laptopModel && object !== paper && object !== laptopScreen) {
+            object.updateMatrix();
+            object.matrixAutoUpdate = false;
+          }
+        });
+        await renderer.compileAsync(scene, camera);
+      } catch (error) {
+        // The normal first render remains a fallback if precompilation fails.
+        console.warn('Scene preparation failed; using normal rendering', error);
+      }
       if (disposed) return;
       assetsReady = true;
       clearTimeout(loadTimeout);
@@ -139,6 +164,7 @@ const ThreeScene = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       if (!cameraMovedByUser) setIntroCamera(introProgress);
+      requestRender();
     };
 
     window.addEventListener("resize", resizeHandler);
@@ -168,6 +194,7 @@ const ThreeScene = () => {
     controls.enabled = false;
     const handleControlStart = () => { cameraMovedByUser = true; };
     controls.addEventListener('start', handleControlStart);
+    controls.addEventListener('change', requestRender);
 
     // One instanced draw call keeps the original round stars.
     const starGeometry = new THREE.SphereGeometry(0.25, 24, 24);
@@ -185,6 +212,7 @@ const ThreeScene = () => {
     stars.instanceMatrix.needsUpdate = true;
     stars.computeBoundingSphere();
     scene.add(stars);
+    const updateVisibleStars = cullStaticInstances(stars);
 
     // Set Background
     const spaceTexture = new THREE.TextureLoader(loadingManager).load('./black.png');
@@ -246,6 +274,7 @@ const ThreeScene = () => {
     
             deskModel.traverse((child) => {
                 if (child.isMesh) {
+                    geometryPreparation.push(indexExactGeometry(child.geometry));
                     child.material.map = diffuseTexture;      
                     child.material.normalMap = normalTexture;
                     child.material.roughnessMap = roughnessTexture;
@@ -281,6 +310,7 @@ const ThreeScene = () => {
     
             paper.traverse((child) => {
                 if (child.isMesh) {
+                    geometryPreparation.push(indexExactGeometry(child.geometry));
                     child.material.map = diffuseTexture1;      
                     child.material.roughnessMap = roughnessTexture1;
                     child.material.needsUpdate = true;
@@ -417,6 +447,7 @@ const ThreeScene = () => {
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
         pointerDirty = true;
+        requestRender();
     };
     window.addEventListener('mousemove', handleMouseMove);
 
@@ -428,7 +459,7 @@ const ThreeScene = () => {
           const intersects2 = raycaster2.intersectObject(paper, true);
           if (intersects2.length > 0) {
             if (!hovering1) {
-                wobble(paper, 10, 10, 10);
+                wobble(paper, 10, 10, 10, requestRender);
                 hovering1 = true;
             }
           } else {
@@ -440,8 +471,8 @@ const ThreeScene = () => {
           const intersects3 = raycaster3.intersectObject(laptopModel, true);
           if (intersects3.length > 0) {
             if (!hovering2) {
-                wobble(laptopModel, 15, 15, 15);
-                wobble(laptopScreen, 1, 1, 1);
+                wobble(laptopModel, 15, 15, 15, requestRender);
+                wobble(laptopScreen, 1, 1, 1, requestRender);
                 hovering2 = true;
             }
           } else {
@@ -483,33 +514,48 @@ const ThreeScene = () => {
     function startRenderLoop() {
       if (disposed || rendering || document.hidden) return;
       rendering = true;
+      previousFrameTime = null;
+      requestRender();
+    }
+
+    function requestRender() {
+      if (disposed || !rendering || document.hidden || animationFrame !== null) return;
       animationFrame = requestAnimationFrame(animate);
     }
 
     function stopRenderLoop() {
       rendering = false;
       cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+      previousFrameTime = null;
     }
 
-    function animate() {
+    function animate(timestamp) {
+      animationFrame = null;
       if (!rendering) return;
-      animationFrame = requestAnimationFrame(animate);
 
       if (animationStarted && introProgress < 1) {
-        introProgress = Math.min(1, introProgress + orbitStep / totalOrbitAngle);
+        const elapsedSeconds = previousFrameTime === null ? 0 : (timestamp - previousFrameTime) / 1000;
+        previousFrameTime = timestamp;
+        introProgress = Math.min(1, introProgress + elapsedSeconds * orbitSpeed / totalOrbitAngle);
         setIntroCamera(introProgress);
-        if (introProgress === 1) controls.enabled = true;
+        if (introProgress === 1) {
+          controls.update();
+          controls.enabled = true;
+        }
       }
       updateHover();
-      controls.update();
+      updateVisibleStars(camera);
       renderer.render(scene, camera);
+      if (introProgress < 1) requestRender();
     }
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
         stopRenderLoop();
-      } else if (animationStarted && !document.getElementById('fullscreenOverlay')) {
-        startRenderLoop();
+      } else {
+        startIntroIfReady();
+        if (animationStarted && !document.getElementById('fullscreenOverlay')) startRenderLoop();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -528,7 +574,12 @@ const ThreeScene = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.getElementById('fullscreenOverlay')?.remove();
       controls.removeEventListener('start', handleControlStart);
+      controls.removeEventListener('change', requestRender);
+      for (const object of [paper, laptopModel, laptopScreen]) {
+        if (object) gsap.killTweensOf(object.scale);
+      }
       controls.dispose();
+      stars.dispose();
       starGeometry.dispose();
       starMaterial.dispose();
       mount.removeChild(renderer.domElement);
